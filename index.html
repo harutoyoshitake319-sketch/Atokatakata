@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>超リアル！3D ペットシミュレーター🐾 - Menu Update</title>
+  <title>3D ペットシミュレーター🐾 - Golden Evolve</title>
   <style>
     body { margin: 0; overflow: hidden; font-family: 'Arial Black', sans-serif; user-select: none; background: #87CEEB; }
     #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -27,7 +27,7 @@
     #progress-bg { background: #222; height: 24px; border-radius: 12px; border: 4px solid #fff; overflow: hidden; box-shadow: 0 4px 0 #000; }
     #progress-bar { background: #00e5ff; width: 0%; height: 100%; transition: width 0.1s; }
 
-    /* 左側：原作風のメニューボタン */
+    /* 左側メニュー */
     #left-menu { position: absolute; left: 20px; top: 30%; display: flex; flex-direction: column; gap: 15px; pointer-events: auto; }
     .menu-icon {
       width: 65px; height: 65px; background: #fff; border: 4px solid #000; border-radius: 18px;
@@ -35,16 +35,13 @@
       box-shadow: 0 5px 0 #000; transition: transform 0.1s; position: relative;
     }
     .menu-icon:active { transform: scale(0.9) translateY(5px); box-shadow: none; }
-    .menu-hint { position: absolute; left: 80px; background: rgba(0,0,0,0.8); color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px; font-family: sans-serif; pointer-events: none; opacity: 0; transition: opacity 0.2s; white-space: nowrap;}
-    .menu-icon:hover .menu-hint { opacity: 1; }
 
-    /* 中央に出現する共通ポップアップ（Roblox風） */
+    /* モーダル */
     .modal {
       position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
       width: 320px; max-height: 55%; background: rgba(0, 0, 0, 0.85); padding: 20px; 
       border-radius: 24px; border: 5px solid #fff; pointer-events: auto; display: none; 
-      box-shadow: 0 10px 0 rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.5); z-index: 100;
-      overflow-y: auto;
+      box-shadow: 0 10px 0 rgba(0,0,0,0.4); z-index: 100; overflow-y: auto;
     }
     .modal-title { font-size: 22px; text-align: center; margin-bottom: 15px; border-bottom: 3px solid #fff; padding-bottom: 5px; }
     .close-btn { background: #ef4444; border: 3px solid #fff; color: white; border-radius: 50%; width: 30px; height: 30px; font-weight: bold; cursor: pointer; float: right; margin-top: -10px; margin-right: -10px;}
@@ -56,10 +53,9 @@
     }
     .pet-item.equipped { border: 4px solid #3b82f6; background: #eff6ff; }
     
-    /* トレード用ボタン */
     .trade-btn { background: #3b82f6; border: 3px solid #fff; color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-top: 10px; font-size: 16px; }
 
-    /* 中央下：ガチャボタン */
+    /* ガチャボタン */
     #gacha-btn {
       position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
       padding: 15px 50px; font-size: 26px; background: #10b981; color: white;
@@ -70,7 +66,7 @@
     
     #notification {
       position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-      font-size: 36px; text-align: center; display: none; z-index: 10;
+      font-size: 32px; text-align: center; display: none; z-index: 110; width: 90%;
     }
 
     #billboard-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -103,15 +99,16 @@
     </div>
     
     <div id="left-menu">
-      <div class="menu-icon" onclick="openModal('pet-modal')">🐱<span class="menu-hint">ペット一覧</span></div>
-      <div class="menu-icon" onclick="openModal('shop-modal')">🛒<span class="menu-hint">ショップブースト</span></div>
-      <div class="menu-icon" onclick="openModal('trade-modal')">🤝<span class="menu-hint">トレード提案</span></div>
-      <div class="menu-icon" onclick="openModal('settings-modal')">⚙️<span class="menu-hint">設定</span></div>
+      <div class="menu-icon" onclick="openModal('pet-modal')">🐱</div>
+      <div class="menu-icon" onclick="openModal('shop-modal')">🛒</div>
+      <div class="menu-icon" onclick="openModal('trade-modal')">🤝</div>
+      <div class="menu-icon" onclick="openModal('settings-modal')">⚙️</div>
     </div>
     
     <div id="pet-modal" class="modal">
       <button class="close-btn" onclick="closeModal('pet-modal')">X</button>
       <div class="modal-title roblox-text">🐾 PETS (<span id="equip-count">0</span>/3)</div>
+      <div style="color:#ffeb3b; font-size:12px; text-align:center; margin-bottom:10px;" class="roblox-text">✨同じ種類の通常ペットが3匹揃うと<br>自動で強力な【ゴールデン形態】に合体！✨</div>
       <div id="pet-list"></div>
     </div>
 
@@ -119,7 +116,7 @@
       <button class="close-btn" onclick="closeModal('shop-modal')">X</button>
       <div class="modal-title roblox-text">🛒 SHOP</div>
       <div class="roblox-text" style="font-size:14px; text-align:center; margin-bottom:15px;">30秒間クリックパワーが2倍になるポーションを飲む！</div>
-      <button class="gacha-btn trade-btn roblox-text" style="width:100%; margin:0;" onclick="activateShopBoost()">🧪 ポーションを使う！</button>
+      <button class="trade-btn roblox-text" style="width:100%; margin:0;" onclick="activateShopBoost()">🧪 ポーションを使う！</button>
     </div>
 
     <div id="trade-modal" class="modal">
@@ -191,23 +188,22 @@
       }
     }
 
-    // モーダル開閉用関数
+    // モーダル開閉
     function openModal(id) {
-      // 一旦全部閉じてから開く
       document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
       document.getElementById(id).style.display = 'block';
       playSound('hit');
     }
-    function closeModal(id) {
-      document.getElementById(id).style.display = 'none';
-    }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // 🛒 ショップのブースト機能
+    // 🛒 ショップ
     let isBoosted = false;
+    let baseClickPower = 1;
+    let clickPower = 1;
     function activateShopBoost() {
       if (isBoosted) { showNotification('既に発動中！', '#ffeb3b'); return; }
       isBoosted = true;
-      clickPower = 2; // パワー2倍
+      clickPower = baseClickPower * 2;
       document.getElementById('boost-timer').style.display = 'inline';
       showNotification('🧪 30秒パワー2倍ブースト！', '#a855f7');
       closeModal('shop-modal');
@@ -215,24 +211,22 @@
       
       setTimeout(() => {
         isBoosted = false;
-        clickPower = 1;
+        clickPower = baseClickPower;
         document.getElementById('boost-timer').style.display = 'none';
-        showNotification('ブーストが終了しました', '#94a3b8');
+        showNotification('ブースト終了しました', '#94a3b8');
         updateUI();
       }, 30000);
     }
 
-    // 🤝 トレード生成ギミック
+    // 🤝 トレード
     let currentOffer = null;
     function generateTradeOffer() {
       const cost = Math.floor(150 * Math.pow(1.5, currentStage - 1));
       const powerReward = Math.floor(5 * Math.pow(1.3, currentStage - 1));
       currentOffer = { cost, powerReward };
-      
       document.getElementById('trade-content').innerHTML = `
-        <div style="color:#ffeb3b; margin-bottom:10px;">商人からのオファー：</div>
-        💰 コイン <span style="color:#4ade80;">${cost}</span> を渡す代わりに、<br>
-        あなたのベースクリックパワーを <br>⚡ <span style="color:#00e5ff;">+${powerReward}</span> してあげるよ！
+        <div style="color:#ffeb3b; margin-bottom:10px;">商人からの提案：</div>
+        💰 コイン <span style="color:#4ade80;">${cost}</span> を渡す代わりに、<br>あなたのベースクリックパワーを<br>⚡ <span style="color:#00e5ff;">+${powerReward}</span> してあげるよ！
         <button class="trade-btn roblox-text" style="background:#10b981; margin-top:15px;" onclick="acceptTrade()">取引する！</button>
       `;
     }
@@ -240,13 +234,14 @@
       if (!currentOffer) return;
       if (coins < currentOffer.cost) { showNotification('コインが足りない！', 'red'); return; }
       coins -= currentOffer.cost;
-      clickPower += currentOffer.powerReward;
-      showNotification('🤝 トレード成立！強くなった！', '#22c55e');
+      baseClickPower += currentOffer.powerReward;
+      clickPower = isBoosted ? baseClickPower * 2 : baseClickPower;
+      showNotification('🤝 取引が成立しました！', '#22c55e');
       closeModal('trade-modal');
       updateUI();
     }
 
-    // ⚙️ 設定のサウンド切り替え
+    // ⚙️ 設定
     function toggleSound() {
       soundEnabled = !soundEnabled;
       const btn = document.getElementById('sound-toggle-btn');
@@ -254,7 +249,7 @@
       btn.style.background = soundEnabled ? '#10b981' : '#ef4444';
     }
 
-    // --- 数字の省略表示 ---
+    // 数字の省略
     function formatNum(num) {
       if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
       if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
@@ -263,7 +258,7 @@
       return Math.floor(num).toString();
     }
 
-    // --- ゲームデータ ---
+    // ゲームデータ
     let currentStage = 1;
     let coins = 100;
     let inventory = [];
@@ -296,7 +291,7 @@
       { name: 'キングイヌ👑', rarity: 'Mythical' }, { name: '神龍⚡', rarity: 'Mythical' }
     ];
 
-    // --- 3D描画システム ---
+    // --- THREE.JS SYSTEM ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
 
@@ -308,11 +303,8 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.45);
-    directionalLight.position.set(15, 25, 10);
-    scene.add(directionalLight);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85); scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.45); directionalLight.position.set(15, 25, 10); scene.add(directionalLight);
 
     // 地面
     const canvas = document.createElement('canvas'); canvas.width = 2; canvas.height = 2;
@@ -321,12 +313,10 @@
     const floorTex = new THREE.CanvasTexture(canvas);
     floorTex.magFilter = THREE.NearestFilter; floorTex.wrapS = THREE.RepeatWrapping; floorTex.wrapT = THREE.RepeatWrapping;
     floorTex.repeat.set(30, 30);
-
-    const floorGeo = new THREE.PlaneGeometry(60, 60);
-    const floorMat = new THREE.MeshLambertMaterial({ map: floorTex });
+    const floorGeo = new THREE.PlaneGeometry(60, 60); const floorMat = new THREE.MeshLambertMaterial({ map: floorTex });
     const floor = new THREE.Mesh(floorGeo, floorMat); floor.rotation.x = -Math.PI / 2; scene.add(floor);
 
-    // プレイヤーアバター
+    // アバター
     const playerGroup = new THREE.Group();
     const whiteMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
     const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), whiteMat); pHead.position.y = 1.6; playerGroup.add(pHead);
@@ -372,10 +362,13 @@
     }
 
     function updateBillboardText(t) {
-      t.billboard.querySelector('.hp-text').innerText = `${formatNum(t.hp)}`;
+      if (t.billboard && t.billboard.querySelector('.hp-text')) {
+        t.billboard.querySelector('.hp-text').innerText = `${formatNum(t.hp)}`;
+      }
     }
 
     function createPopEffect(mesh, text, color) {
+      if (!mesh) return;
       const vec = new THREE.Vector3(mesh.position.x, mesh.position.y + 1, mesh.position.z);
       vec.project(camera);
       const pop = document.createElement('div');
@@ -388,11 +381,14 @@
     }
 
     function damageTarget(t, damage, isPlayerClick = false) {
+      if (!t || t.hp <= 0) return;
       t.hp -= damage; playSound('hit');
       createPopEffect(t.mesh, `-${formatNum(damage)}`, isPlayerClick ? '#ffffff' : '#ffeb3b');
 
-      t.mesh.scale.set(0.8, 0.8, 0.8);
-      setTimeout(() => { if(t.mesh) t.mesh.scale.set(1,1,1); }, 60);
+      if(t.mesh) {
+        t.mesh.scale.set(0.8, 0.8, 0.8);
+        setTimeout(() => { if(t.mesh) t.mesh.scale.set(1,1,1); }, 60);
+      }
 
       if (t.hp <= 0) {
         coins += t.reward; playSound('coin');
@@ -404,7 +400,8 @@
           showNotification(`🎉 AREA ${currentStage} UNLOCKED!`, '#00e5ff');
         }
 
-        scene.remove(t.mesh); t.billboard.remove();
+        if (t.mesh) scene.remove(t.mesh);
+        if (t.billboard) t.billboard.remove();
         targets = targets.filter(x => x.id !== t.id);
         activePetMeshes.forEach(p => { if (p.userData.targetId === t.id) p.userData.targetId = null; });
         spawnTarget();
@@ -423,7 +420,7 @@
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
       
-      const intersects = raycaster.intersectObjects(targets.map(t => t.mesh));
+      const intersects = raycaster.intersectObjects(targets.map(t => t.mesh).filter(m => m));
       if (intersects.length > 0) {
         const targetData = targets.find(t => t.mesh === intersects[0].object);
         if (targetData) damageTarget(targetData, clickPower, true);
@@ -436,7 +433,7 @@
         if (!pet.userData.targetId && targets.length > 0) pet.userData.targetId = targets[Math.floor(Math.random() * targets.length)].id;
 
         const currentTarget = targets.find(t => t.id === pet.userData.targetId);
-        if (currentTarget) {
+        if (currentTarget && currentTarget.mesh) {
           const tPos = currentTarget.mesh.position;
           const pIdx = activePetMeshes.indexOf(pet);
           const angle = (pIdx * Math.PI * 2) / activePetMeshes.length;
@@ -462,6 +459,62 @@
 
     setInterval(spawnTarget, 800);
 
+    // --- 👑 新機能：同じ通常ペットが3つ揃ったらゴールデンに自動合体 👑 ---
+    function checkAndMergePets() {
+      // まだゴールデンになっていない、かつ装備もされていないストック状態のペットの名前をカウント
+      const normalPets = inventory.filter(p => !p.isGolden);
+      const nameCounts = {};
+      
+      normalPets.forEach(p => {
+        nameCounts[p.name] = (nameCounts[p.name] || 0) + 1;
+      });
+
+      for (const name in nameCounts) {
+        if (nameCounts[name] >= 3) {
+          // 合体対象の3匹をインベントリから探す
+          const targetsToMerge = [];
+          for(let i = 0; i < inventory.length; i++) {
+            if(inventory[i].name === name && !inventory[i].isGolden) {
+              targetsToMerge.push(inventory[i]);
+              if(targetsToMerge.length === 3) break;
+            }
+          }
+
+          // 装備中なら強制解除
+          targetsToMerge.forEach(p => {
+            const idx = equippedIds.indexOf(p.id);
+            if (idx > -1) {
+              equippedIds.splice(idx, 1);
+              removePetFrom3D(p.id);
+            }
+          });
+
+          // 3匹を削除
+          const targetIds = targetsToMerge.map(t => t.id);
+          inventory = inventory.filter(p => !targetIds.includes(p.id));
+
+          // 新しいゴールデンペットを作成 (攻撃力は元の3倍)
+          const sample = targetsToMerge[0];
+          const goldenPet = {
+            id: 'golden_' + Date.now() + Math.random().toString(),
+            name: `🌟ゴールデン${sample.name}`,
+            rarity: sample.rarity,
+            mult: sample.mult * 3,
+            color3D: 0xffd700, // 3Dモデルは金色に
+            isGolden: true
+          };
+
+          inventory.push(goldenPet);
+          playSound('levelup');
+          showNotification(`✨3つが合体！ ${goldenPet.name} 誕生!!✨`, '#ffd700');
+          
+          // 再帰的に他にも合体できるものが無いかもう一度チェック
+          checkAndMergePets();
+          break;
+        }
+      }
+    }
+
     // --- ガチャシステム ---
     function rollGacha() {
       const cost = getGachaCost();
@@ -477,20 +530,31 @@
 
       const newPet = {
         id: Date.now() + Math.random().toString(), name: template.name, rarity: selectedRarity,
-        mult: petPower, color3D: rarities[selectedRarity].color
+        mult: petPower, color3D: rarities[selectedRarity].color, isGolden: false
       };
 
-      inventory.push(newPet); updateUI(); renderInventory();
-      showNotification(`🐣 ${newPet.name} GET!!`, rarities[selectedRarity].htmlColor);
+      inventory.push(newPet);
+      checkAndMergePets(); // ガチャを引いた瞬間に合体判定を走らせる
+      updateUI(); renderInventory();
+      
+      if(!newPet.name.includes('🌟')) {
+        showNotification(`🐣 ${newPet.name} GET!!`, rarities[selectedRarity].htmlColor);
+      }
     }
 
     function renderInventory() {
-      const list = document.getElementById('pet-list'); list.innerHTML = '';
+      const list = document.getElementById('pet-list'); if(!list) return;
+      list.innerHTML = '';
       inventory.forEach(pet => {
         const isEquipped = equippedIds.includes(pet.id);
         const div = document.createElement('div');
         div.className = `pet-item ${isEquipped ? 'equipped' : ''}`;
-        div.innerHTML = `${isEquipped ? '✅' : ''} <span style="color:${rarities[pet.rarity].htmlColor};">● [${rarities[pet.rarity].name}]</span> ${pet.name}<br>🐾🐾 (P: ${formatNum(pet.mult)})`;
+        
+        const rarityInfo = rarities[pet.rarity];
+        const labelColor = pet.isGolden ? '#ffd700' : rarityInfo.htmlColor;
+        const rarityName = pet.isGolden ? 'ゴールデン' : rarityInfo.name;
+
+        div.innerHTML = `${isEquipped ? '✅' : ''} <span style="color:${labelColor};">● [${rarityName}]</span> ${pet.name}<br>🐾🐾 (P: ${formatNum(pet.mult)})`;
         div.onclick = () => toggleEquip(pet);
         list.appendChild(div);
       });
@@ -532,9 +596,9 @@
     }
 
     function showNotification(text, color) {
-      const notif = document.getElementById('notification');
-      notif.innerText = text; notif.style.color = color; notif.style.display = 'block';
-      setTimeout(() => notif.style.display = 'none', 1800);
+      const notif = document.getElementById('notification'); if(!notif) return;
+      notif.innerHTML = text; notif.style.color = color; notif.style.display = 'block';
+      setTimeout(() => { if(notif) notif.style.display = 'none'; }, 2200);
     }
 
     window.addEventListener('resize', () => {
@@ -545,16 +609,22 @@
     const vec = new THREE.Vector3();
     function animate() {
       requestAnimationFrame(animate);
-      petAIBehavior();
-      playerGroup.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.02;
+      try {
+        petAIBehavior();
+        playerGroup.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.02;
 
-      targets.forEach(t => {
-        vec.set(t.mesh.position.x, t.mesh.position.y + (t.type.scale[1]/2) + 0.7, t.mesh.position.z);
-        vec.project(camera);
-        t.billboard.style.left = `${(vec.x * 0.5 + 0.5) * window.innerWidth}px`;
-        t.billboard.style.top = `${(vec.y * -0.5 + 0.5) * window.innerHeight}px`;
-      });
-      renderer.render(scene, camera);
+        targets.forEach(t => {
+          if (t.mesh && t.billboard) {
+            vec.set(t.mesh.position.x, t.mesh.position.y + (t.type.scale[1]/2) + 0.7, t.mesh.position.z);
+            vec.project(camera);
+            t.billboard.style.left = `${(vec.x * 0.5 + 0.5) * window.innerWidth}px`;
+            t.billboard.style.top = `${(vec.y * -0.5 + 0.5) * window.innerHeight}px`;
+          }
+        });
+        renderer.render(scene, camera);
+      } catch(e) {
+        console.error("Render loop error avoided", e);
+      }
     }
 
     for(let i=0; i<10; i++) spawnTarget();
