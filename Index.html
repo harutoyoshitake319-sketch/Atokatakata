@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ロブロ・ペットウォーズ シミュレーター🐾</title>
+  <style>
+    :root {
+      --bg-color: #f0f3f9;
+      --panel-bg: #ffffff;
+      --primary: #4f46e5;
+      --common: #94a3b8;
+      --uncommon: #22c55e;
+      --rare: #3b82f6;
+      --epic: #a855f7;
+      --legendary: #eab308;
+      --mythical: #ec4899;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      user-select: none;
+    }
+    #game-container {
+      width: 100%;
+      max-width: 650px;
+      background: var(--panel-bg);
+      border-radius: 24px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+      padding: 25px;
+      box-sizing: border-box;
+    }
+    /* ヘッダー・ステータス */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #e2e8f0;
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .currency {
+      font-size: 24px;
+      font-weight: bold;
+      color: #b45309;
+    }
+    .power {
+      font-size: 20px;
+      font-weight: bold;
+      color: #4f46e5;
+    }
+    /* タブ切り替え */
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      background: #e2e8f0;
+      color: #475569;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* バトルエリア (チェスト) */
+    .battle-zone {
+      text-align: center;
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 30px 20px;
+      border: 2px dashed #cbd5e1;
+    }
+    #chest-target {
+      font-size: 80px;
+      cursor: pointer;
+      transition: transform 0.1s;
+      display: inline-block;
+      margin: 20px 0;
+    }
+    #chest-target:active { transform: scale(0.9); }
+    .hp-container {
+      background: #e2e8f0;
+      border-radius: 10px;
+      height: 20px;
+      width: 80%;
+      margin: 0 auto 10px;
+      overflow: hidden;
+    }
+    .hp-bar {
+      background: #ef4444;
+      height: 100%;
+      width: 100%;
+      transition: width 0.1s ease;
+    }
+    /* 同伴ペットの見た目 */
+    .active-pets-line {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+      min-height: 60px;
+    }
+    .active-pet {
+      font-size: 35px;
+      animation: float 1s ease-in-out infinite alternate;
+    }
+    @keyframes float {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
+    }
+
+    /* ガチャエリア */
+    .gacha-zone { text-align: center; padding: 20px 0; }
+    .egg-display { font-size: 90px; margin-bottom: 10px; }
+    .hatch-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 15px 40px;
+      font-size: 20px;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 0 #047857;
+    }
+    .hatch-btn:active { transform: translateY(4px); box-shadow: none; }
+    .hatch-result {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      min-height: 40px;
+    }
+
+    /* インベントリエリア */
+    .inventory-info { font-weight: bold; margin-bottom: 10px; color: #475569; }
+    .pet-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 12px;
+      max-height: 350px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    .pet-card {
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      border: 3px solid transparent;
+      cursor: pointer;
+      position: relative;
+    }
+    .pet-card.equipped { border-color: var(--primary); background: #eef2ff; }
+    .pet-card .rarity-badge {
+      font-size: 10px;
+      font-weight: bold;
+      color: white;
+      padding: 2px 6px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .equip-indicator {
+      position: absolute;
+      top: 5px; right: 5px;
+      font-size: 12px; background: var(--primary); color: white;
+      border-radius: 50%; width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* レア度別カラークラス */
+    .bg-Common { background-color: var(--common); }
+    .bg-Uncommon { background-color: var(--uncommon); }
+    .bg-Rare { background-color: var(--rare); }
+    .bg-Epic { background-color: var(--epic); }
+    .bg-Legendary { background-color: var(--legendary); }
+    .bg-Mythical { background-color: var(--mythical); }
+    
+    /* 確率表 */
+    .rates-table {
+      margin: 20px auto 0; width: 80%; font-size: 12px;
+      border-collapse: collapse; text-align: left;
+    }
+    .rates-table th, .rates-table td { padding: 6px; border-bottom: 1px solid #cbd5e1; }
+  </style>
+</head>
+<body>
+
+  <div id="game-container">
+    <div class="header">
+      <div class="currency">💰 コイン: <span id="coin-count">0</span></div>
+      <div class="power">⚔️ 総パワー: <span id="total-power">1</span></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('battle')">⚔️ バトル</button>
+      <button class="tab-btn" onclick="switchTab('gacha')">🥚 ガチャ</button>
+      <button class="tab-btn" onclick="switchTab('inventory')">🐾 ペット (<span id="inv-count">0</span>)</button>
+    </div>
+
+    <div id="tab-battle" class="tab-content active">
+      <div class="battle-zone">
+        <h3 id="chest-name">木箱 📦</h3>
+        <div class="hp-container">
+          <div id="chest-hp-bar" class="hp-bar"></div>
+        </div>
+        <div id="chest-hp-text">HP: 50 / 50</div>
+        
+        <div id="chest-target" onclick="clickChest()">📦</div>
+        <p style="font-size: 13px; color: #64748b;">（クリックで攻撃！ペットは1秒ごとに自動攻撃します）</p>
+        
+        <hr style="border: 1px solid #e2e8f0; margin: 20px 0;">
+        <div><strong>うしろに連れているペットたち:</strong></div>
+        <div id="active-pets-line" class="active-pets-line"></div>
+      </div>
+    </div>
+
+    <div id="tab-gacha" class="tab-content">
+      <div class="gacha-zone">
+        <h2>ペットの卵</h2>
+        <div class="egg-display">🥚</div>
+        <button class="hatch-btn" onclick="hatchEgg()">孵化する！ (100💰)</button>
+        <div id="hatch-result" class="hatch-result"></div>
+
+        <table class="rates-table">
+          <tr><th>レア度</th><th>確率</th><th>倍率</th></tr>
+          <tr><td style="color:var(--common)">コモン</td><td>50%</td><td>x1</td></tr>
+          <tr><td style="color:var(--uncommon)">アンコモン</td><td>25%</td><td>x3</td></tr>
+          <tr><td style="color:var(--rare)">レア</td><td>15%</td><td>x8</td></tr>
+          <tr><td style="color:var(--epic)">エピック</td><td>7%</td><td>x25</td></tr>
+          <tr><td style="color:var(--legendary)">レジェンダリー</td><td>2.5%</td><td>x80</td></tr>
+          <tr><td style="color:var(--mythical)">ミシカル</td><td>0.5%</td><td>x300</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-inventory" class="tab-content">
+      <div class="inventory-info">
+        装備中: <span id="equip-count">0</span> / 3 (クリックで装備/解除)
+      </div>
+      <div id="pet-grid" class="pet-grid">
+        </div>
+    </div>
+  </div>
+
+  <script>
+    // 6段階のレアリティ設定
+    const rarities = {
+      Common: { name: 'コモン', color: 'var(--common)', weight: 5000, mult: 1 },
+      Uncommon: { name: 'アンコモン', color: 'var(--uncommon)', weight: 2500, mult: 3 },
+      Rare: { name: 'レア', color: 'var(--rare)', weight: 1500, mult: 8 },
+      Epic: { name: 'エピック', color: 'var(--epic)', weight: 700, mult: 25 },
+      Legendary: { name: 'レジェンダリー', color: 'var(--legendary)', weight: 250, mult: 80 },
+      Mythical: { name: 'ミシカル', color: 'var(--mythical)', weight: 50, mult: 300 }
+    };
+
+    // 全30種類のペットテンプレート（各レアリティに綺麗に分配）
+    const petTemplates = [
+      { name: 'イヌ', emoji: '🐶', rarity: 'Common' },
+      { name: 'ネコ', emoji: '🐱', rarity: 'Common' },
+      { name: 'ネズミ', emoji: '🐭', rarity: 'Common' },
+      { name: 'ハムスター', emoji: '🐹', rarity: 'Common' },
+      { name: 'ウサギ', emoji: '🐰', rarity: 'Common' },
+      { name: 'アヒル', emoji: '🦆', rarity: 'Common' },
+
+      { name: 'キツネ', emoji: '🦊', rarity: 'Uncommon' },
+      { name: 'クマ', emoji: '🐻', rarity: 'Uncommon' },
+      { name: 'パンダ', emoji: '🐼', rarity: 'Uncommon' },
+      { name: 'コアラ', emoji: '🐨', rarity: 'Uncommon' },
+      { name: 'トラ', emoji: '🐯', rarity: 'Uncommon' },
+      { name: 'ライオン', emoji: '🦁', rarity: 'Uncommon' },
+
+      { name: 'ウシ', emoji: '🐮', rarity: 'Rare' },
+      { name: 'ブタ', emoji: '🐷', rarity: 'Rare' },
+      { name: 'カエル', emoji: '🐸', rarity: 'Rare' },
+      { name: 'サル', emoji: '🐵', rarity: 'Rare' },
+      { name: 'ニワトリ', emoji: '🐔', rarity: 'Rare' },
+      { name: 'ペンギン', emoji: '🐧', rarity: 'Rare' },
+
+      { name: 'ユニコーン', emoji: '🦄', rarity: 'Epic' },
+      { name: 'ドラゴン', emoji: '🐉', rarity: 'Epic' },
+      { name: 'オオカミ', emoji: '🐺', rarity: 'Epic' },
+      { name: 'タコ', emoji: '🐙', rarity: 'Epic' },
+      { name: 'エイリアン', emoji: '👽', rarity: 'Epic' },
+
+      { name: '不死鳥', emoji: '🦅', rarity: 'Legendary' },
+      { name: 'ロボット', emoji: '🤖', rarity: 'Legendary' },
+      { name: 'ゴースト', emoji: '👻', rarity: 'Legendary' },
+      { name: 'アクマ', emoji: '😈', rarity: 'Legendary' },
+
+      { name: 'キング・イヌ', emoji: '👑', rarity: 'Mythical' },
+      { name: '銀河ネコ', emoji: '🌌', rarity: 'Mythical' },
+      { name: '神龍', emoji: '⚡', rarity: 'Mythical' }
+    ];
+
+    // チェストのバリエーション
+    const chestTypes = [
+      { name: '木箱 📦', emoji: '📦', baseHp: 40, baseReward: 20 },
+      { name: '銀のチェスト 🥈', emoji: '🥈', baseHp: 160, baseReward: 90 },
+      { name: '金のチェスト 💰', emoji: '💰', baseHp: 650, baseReward: 400 },
+      { name: '巨大金庫 🗄️', emoji: '🗄️', baseHp: 3000, baseReward: 2000 },
+      { name: 'ダイヤの魔方陣 💎', emoji: '💎', baseHp: 15000, baseReward: 11000 }
+    ];
+
+    // ゲーム状態変数
+    let coins = 100; // 最初は卵を1回引けるように100コイン所持
+    let totalPower = 1; 
+    let inventory = [];
+    let equippedIds = [];
+    let chestLevel = 1;
+    let currentChest = {};
+
+    // タブの切り替え
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      event.currentTarget.classList.add('active');
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    // 新しいチェストの生成
+    function nextChest() {
+      const type = chestTypes[Math.floor(Math.random() * chestTypes.length)];
+      // レベルが上がるにつれてHPと報酬が乗算スケール
+      const scale = Math.pow(1.2, chestLevel - 1);
+      
+      currentChest = {
+        name: `Lv.${chestLevel} ${type.name}`,
+        emoji: type.emoji,
+        maxHp: Math.floor(type.baseHp * scale),
+        reward: Math.floor(type.baseReward * scale)
+      };
+      currentChest.hp = currentChest.maxHp;
+      updateChestUI();
+    }
+
+    function updateChestUI() {
+      document.getElementById('chest-name').innerText = currentChest.name;
+      document.getElementById('chest-target').innerText = currentChest.emoji;
+      document.getElementById('chest-hp-text').innerText = `HP: ${currentChest.hp} / ${currentChest.maxHp}`;
+      const pct = (currentChest.hp / currentChest.maxHp) * 100;
+      document.getElementById('chest-hp-bar').style.width = `${Math.max(0, pct)}%`;
+    }
+
+    // チェストへのダメージ処理
+    function damageChest(amount) {
+      if (!currentChest.hp) return;
+      currentChest.hp -= amount;
+      if (currentChest.hp <= 0) {
+        currentChest.hp = 0;
+        coins += currentChest.reward;
+        chestLevel++; // チェストが壊れるたびにレベルアップ
+        nextChest();
+      }
+      updateChestUI();
+      updateTopStatusBar();
+    }
+
+    function clickChest() {
+      damageChest(totalPower); // クリック時は総パワー分のダメージ
+    }
+
+    // ステータス更新
+    function updateTopStatusBar() {
+      document.getElementById('coin-count').innerText = coins;
+      document.getElementById('total-power').innerText = totalPower;
+      document.getElementById('inv-count').innerText = inventory.length;
+    }
+
+    // ガチャ（卵孵化）
+    function hatchEgg() {
+      if (coins < 100) {
+        alert("コインが足りないよ！バトルでチェストを壊して稼ごう！");
+        return;
+      }
+      coins -= 100;
+      updateTopStatusBar();
+
+      // 重み付けによるレアリティ決定
+      let rand = Math.random() * 10000;
+      let selectedRarity = 'Common';
+      let sum = 0;
+      for (const [key, val] of Object.entries(rarities)) {
+        sum += val.weight;
+        if (rand <= sum) {
+          selectedRarity = key;
+          break;
+        }
+      }
+
+      // 決定したレアリティの中からランダムにペットを抽選
+      const options = petTemplates.filter(p => p.rarity === selectedRarity);
+      const template = options[Math.floor(Math.random() * options.length)];
+
+      // インスタンス化してインベントリに追加
+      const newPet = {
+        id: Date.now() + Math.random().toString(), // 固有識別子
+        name: template.name,
+        emoji: template.emoji,
+        rarity: template.rarity,
+        mult: rarities[selectedRarity].mult
+      };
+
+      inventory.push(newPet);
+      
+      // 結果アニメーション表示
+      const resultEl = document.getElementById('hatch-result');
+      const rData = rarities[selectedRarity];
+      resultEl.innerHTML = `🎉 <span style="color:${rData.color}">[${rData.name}]</span> ${newPet.emoji} ${newPet.name} をゲット！`;
+      
+      renderInventory();
+    }
+
+    // インベントリの描画
+    function renderInventory() {
+      const grid = document.getElementById('pet-grid');
+      grid.innerHTML = '';
+      document.getElementById('equip-count').innerText = equippedIds.length;
+
+      inventory.forEach(pet => {
+        const isEquipped = equippedIds.includes(pet.id);
+        const card = document.createElement('div');
+        card.className = `pet-card ${isEquipped ? 'equipped' : ''}`;
+        card.onclick = () => toggleEquip(pet.id);
+
+        card.innerHTML = `
+          ${isEquipped ? '<div class="equip-indicator">✓</div>' : ''}
+          <div style="font-size: 35px;">${pet.emoji}</div>
+          <div style="font-weight:bold; font-size:14px; margin-top:5px;">${pet.name}</div>
+          <div style="font-size:12px; color:#64748b;">パワー: +${pet.mult}</div>
+          <div class="rarity-badge bg-${pet.rarity}">${rarities[pet.rarity].name}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // 装備の切り替え (最大3体まで)
+    function toggleEquip(petId) {
+      const idx = equippedIds.indexOf(petId);
+      if (idx > -1) {
+        equippedIds.splice(idx, 1);
+      } else {
+        if (equippedIds.length >= 3) {
+          alert("装備できるペットは3体までだよ！");
+          return;
+        }
+        equippedIds.push(petId);
+      }
+      recalculatePower();
+      renderInventory();
+      renderActivePets();
+    }
+
+    // パワーの再計算
+    function recalculatePower() {
+      let powerSum = 1; // プレイヤー自身の基本攻撃力
+      equippedIds.forEach(id => {
+        const pet = inventory.find(p => p.id === id);
+        if (pet) powerSum += pet.mult;
+      });
+      totalPower = powerSum;
+      updateTopStatusBar();
+    }
+
+    // バトル画面で後ろをうろつくペットの描画
+    function renderActivePets() {
+      const container = document.getElementById('active-pets-line');
+      container.innerHTML = '';
+      equippedIds.forEach(id => {
+        const pet = inventory.find(p => p.id === id);
+        if (pet) {
+          const div = document.createElement('div');
+          div.className = 'active-pet';
+          div.innerText = pet.emoji;
+          div.title = `${pet.name} (パワー+${pet.mult})`;
+          container.appendChild(div);
+        }
+      });
+    }
+
+    // --- 自動攻撃タイマーループ (Robloxの醍醐味) ---
+    setInterval(() => {
+      // 装備しているペットの攻撃力の合計値を算出
+      let petPower = 0;
+      equippedIds.forEach(id => {
+        const pet = inventory.find(p => p.id === id);
+        if (pet) petPower += pet.mult;
+      });
+
+      // ペットを連れていれば1秒ごとに自動でチェストを攻撃！
+      if (petPower > 0) {
+        damageChest(petPower);
+      }
+    }, 1000);
+
+    // 初期起動
+    nextChest();
+    updateTopStatusBar();
+  </script>
+</body>
+</html>
