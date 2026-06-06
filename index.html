@@ -3,48 +3,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3D ペットシミュレーター🐾 - Multi Targets</title>
+  <title>超リアル！3D ペットシミュレーター🐾</title>
   <style>
-    body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; user-select: none; background: #87CEEB; }
+    /* Roblox風のポップで大胆なUIデザイン */
+    body { margin: 0; overflow: hidden; font-family: 'Arial Black', sans-serif; user-select: none; background: #87CEEB; }
     #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-    .panel { background: rgba(255, 255, 255, 0.95); padding: 15px; border-radius: 12px; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     
-    #header { position: absolute; top: 20px; left: 20px; font-size: 20px; font-weight: bold; color: #333; }
-    .stage-text { font-size: 24px; color: #0284c7; margin-bottom: 5px; }
+    /* 文字のフチ取り（ロブロックス特有の強い影） */
+    .roblox-text {
+      color: white;
+      font-weight: 900;
+      text-shadow: -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000;
+    }
+
+    /* 左上：ステータス */
+    #header { position: absolute; top: 20px; left: 20px; font-size: 24px; pointer-events: auto; }
+    .stage-text { font-size: 32px; color: #ffeb3b; margin-bottom: 5px; }
     
-    /* 画面中央上のエリア進捗バー（原作風） */
+    /* 中央上：エリア進行バー（Next Area） */
     #progress-container {
       position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-      width: 300px; text-align: center; pointer-events: auto;
+      width: 320px; text-align: center; pointer-events: auto;
     }
-    #progress-label { font-weight: bold; font-size: 16px; color: #333; text-shadow: 1px 1px 0 #fff; margin-bottom: 4px; }
-    #progress-bg { background: #334155; height: 20px; border-radius: 10px; border: 3px solid #fff; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-    #progress-bar { background: #06b6d4; width: 0%; height: 100%; transition: width 0.2s; }
+    #progress-label { font-size: 18px; margin-bottom: 6px; }
+    #progress-bg { background: #222; height: 24px; border-radius: 12px; border: 4px solid #fff; overflow: hidden; box-shadow: 0 4px 0 #000; }
+    #progress-bar { background: #00e5ff; width: 0%; height: 100%; transition: width 0.1s; }
 
-    #inventory { position: absolute; top: 20px; right: 20px; width: 220px; max-height: 70%; overflow-y: auto; }
+    /* 右上：インベントリ */
+    #inventory {
+      position: absolute; top: 20px; right: 20px; width: 240px; max-height: 60%;
+      background: rgba(0, 0, 0, 0.6); padding: 15px; border-radius: 16px; border: 4px solid #fff;
+      pointer-events: auto; overflow-y: auto; box-shadow: 0 6px 0 rgba(0,0,0,0.3);
+    }
+    .pet-item {
+      background: rgba(255,255,255,0.9); padding: 8px; border-radius: 8px; margin-bottom: 6px;
+      font-size: 14px; color: #333; cursor: pointer; border: 2px solid #ccc; font-family: sans-serif; font-weight: bold;
+    }
+    .pet-item.equipped { border: 4px solid #3b82f6; background: #eff6ff; }
     
+    /* 左側：ダミーアイコンメニュー（原作リスペクト） */
+    #left-menu { position: absolute; left: 20px; top: 35%; display: flex; flex-direction: column; gap: 12px; pointer-events: auto; }
+    .menu-icon {
+      width: 60px; height: 60px; background: #fff; border: 4px solid #000; border-radius: 16px;
+      font-size: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+      box-shadow: 0 4px 0 #000; transition: transform 0.1s;
+    }
+    .menu-icon:active { transform: scale(0.9) translateY(4px); box-shadow: none; }
+
+    /* 中央下：ド派手ガチャボタン */
     #gacha-btn {
       position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-      padding: 15px 40px; font-size: 22px; font-weight: bold; background: #10b981; color: white;
-      border: none; border-radius: 50px; cursor: pointer; pointer-events: auto;
-      box-shadow: 0 5px 0 #047857; transition: transform 0.1s;
+      padding: 15px 50px; font-size: 26px; background: #10b981; color: white;
+      border: 4px solid #fff; border-radius: 50px; cursor: pointer; pointer-events: auto;
+      box-shadow: 0 6px 0 #047857, 0 10px 0 #000; transition: transform 0.1s;
     }
-    #gacha-btn:active { transform: translate(-50%, 5px); box-shadow: none; }
+    #gacha-btn:active { transform: translate(-50%, 6px); box-shadow: 0 4px 0 #000; }
     
     #notification {
       position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%);
-      font-size: 32px; font-weight: bold; text-align: center; display: none;
-      text-shadow: 2px 2px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff; z-index: 10;
+      font-size: 36px; text-align: center; display: none; z-index: 10;
     }
-    .pet-item { padding: 5px; border-bottom: 1px solid #ccc; font-size: 14px; cursor: pointer; }
-    .pet-item.equipped { background: #e0e7ff; font-weight: bold; }
 
-    /* 各ターゲットの頭上に浮かぶ文字のコンテナ */
+    /* 3D上の名前表示 */
     #billboard-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-    .billboard {
-      position: absolute; text-align: center; transform: translate(-50%, -100%);
-      font-weight: bold; color: white; font-size: 13px;
-      text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    .billboard { position: absolute; text-align: center; transform: translate(-50%, -100%); font-size: 14px; }
+
+    /* 飛び出すダメージ・コインエフェクト（3D空間に浮かぶテキスト） */
+    .pop-effect {
+      position: absolute; pointer-events: none; font-size: 24px; font-weight: 900;
+      animation: floatUp 0.6s ease-out forwards;
+    }
+    @keyframes floatUp {
+      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; }
+      50% { transform: translate(-50%, -120%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -180%) scale(1); opacity: 0; }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -52,29 +84,87 @@
 <body>
 
   <div id="ui-layer">
-    <div id="header" class="panel">
-      <div id="stage-display" class="stage-text">エリア 1</div>
-      💰 コイン: <span id="coin-count">100</span><br>
-      ⚔️ クリックパワー: <span id="power-count">1</span>
+    <div id="header" class="roblox-text">
+      <div id="stage-display" class="stage-text">AREA 1</div>
+      💰 <span id="coin-count">100</span><br>
+      ⚡ <span id="power-count">1</span>
     </div>
     
-    <div id="progress-container">
+    <div id="progress-container" class="roblox-text">
       <div id="progress-label">Next Area (0%)</div>
       <div id="progress-bg"><div id="progress-bar"></div></div>
     </div>
     
-    <div id="inventory" class="panel">
-      <div style="font-weight:bold; margin-bottom:10px;">🐾 ペット (装備: <span id="equip-count">0</span>/3)</div>
+    <div id="left-menu">
+      <div class="menu-icon" title="ペット">🐱</div>
+      <div class="menu-icon" title="ショップ">🛒</div>
+      <div class="menu-icon" title="トレード">🤝</div>
+      <div class="menu-icon" title="設定">⚙️</div>
+    </div>
+    
+    <div id="inventory">
+      <div class="roblox-text" style="font-size:16px; margin-bottom:10px; text-align:center;">🐾 PETS (<span id="equip-count">0</span>/3)</div>
       <div id="pet-list"></div>
     </div>
 
-    <button id="gacha-btn" onclick="rollGacha()">🥚 ガチャ (<span id="gacha-cost-display">100</span>💰)</button>
-    <div id="notification"></div>
+    <button id="gacha-btn" class="roblox-text" onclick="rollGacha()">🥚 EGG (<span id="gacha-cost-display">100</span>)</button>
+    <div id="notification" class="roblox-text"></div>
     
     <div id="billboard-container"></div>
   </div>
 
   <script>
+    // --- 超リアル効果音生成システム (Web Audio API) ---
+    let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+    function playSound(type) {
+      initAudio();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'hit') { // 叩いたとき（トントン音）
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.08);
+        osc.start(now); osc.stop(now + 0.08);
+      } 
+      else if (type === 'coin') { // コイン獲得（ピコーン！）
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(987.77, now); // B5
+        osc.frequency.setValueAtTime(1318.51, now + 0.06); // E6
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        osc.start(now); osc.stop(now + 0.2);
+      } 
+      else if (type === 'gacha') { // ガチャ（ファンファーレ）
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C E G C
+        notes.forEach((f, i) => {
+          const o = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          o.connect(g); g.connect(audioCtx.destination);
+          o.frequency.setValueAtTime(f, now + i * 0.06);
+          g.gain.setValueAtTime(0.1, now + i * 0.06);
+          g.gain.linearRampToValueAtTime(0, now + i * 0.06 + 0.15);
+          o.start(now + i * 0.06); o.stop(now + i * 0.06 + 0.15);
+        });
+      }
+      else if (type === 'levelup') { // エリア突破
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.3);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0, now + 0.3);
+        osc.start(now); osc.stop(now + 0.3);
+      }
+    }
+
     // --- 数字の省略表示 ---
     function formatNum(num) {
       if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
@@ -84,22 +174,20 @@
       return Math.floor(num).toString();
     }
 
-    // --- ゲーム変数 ---
+    // --- ゲームデータ ---
     let currentStage = 1;
     let coins = 100;
     let clickPower = 1;
     let inventory = [];
     let equippedIds = [];
-    
-    let stageProgress = 0; // 0から100まで貯まると次のエリアへ
+    let stageProgress = 0;
     const progressToClear = 100;
 
-    // ターゲットの種類
     const targetTypes = [
-      { name: 'コインの山🪙', hp: 10, reward: 5, color: 0xeab308, scale: [0.8, 0.4, 0.8] },
-      { name: '木の箱📦', hp: 30, reward: 15, color: 0xb45309, scale: [1.2, 1.2, 1.2] },
-      { name: 'プレゼント🎁', hp: 60, reward: 35, color: 0xef4444, scale: [1.0, 1.0, 1.0] },
-      { name: '巨大金庫💎', hp: 200, reward: 120, color: 0x06b6d4, scale: [2.0, 2.0, 2.0] }
+      { name: 'コインの山🪙', hp: 12, reward: 8, color: 0xffd700, scale: [0.9, 0.4, 0.9] },
+      { name: '木の箱📦', hp: 35, reward: 25, color: 0xcd853f, scale: [1.2, 1.2, 1.2] },
+      { name: 'プレゼント🎁', hp: 80, reward: 60, color: 0xff4500, scale: [1.1, 1.1, 1.1] },
+      { name: '巨大金庫💎', hp: 300, reward: 250, color: 0x00bfff, scale: [2.2, 2.2, 2.2] }
     ];
 
     const rarities = {
@@ -120,125 +208,143 @@
       { name: 'キングイヌ👑', rarity: 'Mythical' }, { name: '神龍⚡', rarity: 'Mythical' }
     ];
 
-    // --- 3D空間構築 ---
+    // --- 3D描画システム ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
 
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 12, 16); // 見下ろし型視点に変更
-    camera.lookAt(0, -1, 2);
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 15, 18);
+    camera.lookAt(0, 0, 2);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.4);
-    directionalLight.position.set(10, 20, 10);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.45);
+    directionalLight.position.set(15, 25, 10);
     scene.add(directionalLight);
 
-    // 広めの地面
+    // 🌟 本家そっくり！2色チェック柄の地面テクスチャ自動生成 🌟
+    const canvas = document.createElement('canvas');
+    canvas.width = 2; canvas.height = 2;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#55dd6c'; ctx.fillRect(0,0,2,2); // ベースのライトグリーン
+    ctx.fillStyle = '#45ca5b'; ctx.fillRect(0,0,1,1); ctx.fillRect(1,1,1,1); // ダークグリーン
+    const floorTex = new THREE.CanvasTexture(canvas);
+    floorTex.magFilter = THREE.NearestFilter;
+    floorTex.wrapS = THREE.RepeatWrapping; floorTex.wrapT = THREE.RepeatWrapping;
+    floorTex.repeat.set(25, 25);
+
     const floorGeo = new THREE.PlaneGeometry(60, 60);
-    const floorMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+    const floorMat = new THREE.MeshLambertMaterial({ map: floorTex });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // 管理用データ配列
-    let targets = [];          // 画面内の箱やコイン
-    let activePetMeshes = [];  // 装備中ペットの3Dモデル
+    // 🌟 原作リスペクト：中央に立つ白いRoblox風プレイヤー 🌟
+    const playerGroup = new THREE.Group();
+    const whiteMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+    // 頭
+    const pHead = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), whiteMat); pHead.position.y = 1.6; playerGroup.add(pHead);
+    // 体
+    const pBody = new THREE.Mesh(new THREE.BoxGeometry(0.9, 1.1, 0.5), whiteMat); pBody.position.y = 0.7; playerGroup.add(pBody);
+    // 手足
+    const pLarm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), whiteMat); pLarm.position.set(-0.65, 0.7, 0); playerGroup.add(pLarm);
+    const pRarm = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.0, 0.35), whiteMat); pRarm.position.set(0.65, 0.7, 0); playerGroup.add(pRarm);
+    const pLleg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.8, 0.4), whiteMat); pLleg.position.set(-0.22, 0.2, 0); playerGroup.add(pLleg);
+    const pRleg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.8, 0.4), whiteMat); pRleg.position.set(0.22, 0.2, 0); playerGroup.add(pRleg);
+    playerGroup.position.set(0, 0, 3); // 中央の少し手前に配置
+    scene.add(playerGroup);
 
-    // --- 計算システム ---
-    function getGachaCost() { return 100 * Math.pow(1.5, currentStage - 1); }
-    function getStageScale() { return Math.pow(1.4, currentStage - 1); }
+    let targets = [];
+    let activePetMeshes = [];
 
-    // --- ターゲット（敵）の生成システム ---
+    function getGachaCost() { return 100 * Math.pow(1.6, currentStage - 1); }
+    function getStageScale() { return Math.pow(1.5, currentStage - 1); }
+
+    // --- ターゲット出現 ---
     function spawnTarget() {
-      if (targets.length >= 8) return; // 画面内に最大8個まで自動生成
-
-      // ランダムなターゲットの種類を選択（巨大金庫は低確率）
+      if (targets.length >= 8) return;
       let typeIndex = Math.floor(Math.random() * (targetTypes.length - 1));
-      if(Math.random() < 0.1) typeIndex = targetTypes.length - 1; // 10%で金庫
+      if(Math.random() < 0.12) typeIndex = targetTypes.length - 1; // 金庫確率
       const type = targetTypes[typeIndex];
 
       const scaleMultiplier = getStageScale();
       const maxHp = type.hp * scaleMultiplier;
 
-      // 3Dモデル生成
       const geo = new THREE.BoxGeometry(type.scale[0], type.scale[1], type.scale[2]);
       const mat = new THREE.MeshLambertMaterial({ color: type.color });
       const mesh = new THREE.Mesh(geo, mat);
 
-      // ランダムな位置に配置（中央の広場に散りばめる）
-      mesh.position.set(
-        (Math.random() - 0.5) * 16,
-        type.scale[1] / 2,
-        (Math.random() - 0.5) * 12 + 2
-      );
+      mesh.position.set((Math.random() - 0.5) * 18, type.scale[1] / 2, (Math.random() - 0.5) * 12 + 1);
       scene.add(mesh);
 
-      // 看板UI（Billboard）のHTML作成
       const bEles = document.getElementById('billboard-container');
       const bDiv = document.createElement('div');
-      bDiv.className = 'billboard';
-      bDiv.innerHTML = `<div>${type.name}</div><div class="hp-text"></div>`;
+      bDiv.className = 'billboard roblox-text';
+      bDiv.innerHTML = `<div style="font-size:12px;">${type.name}</div><div class="hp-text" style="color:#ff4444;"></div>`;
       bEles.appendChild(bDiv);
 
       const targetData = {
-        id: Math.random().toString(),
-        mesh: mesh,
-        billboard: bDiv,
-        type: type,
-        maxHp: maxHp,
-        hp: maxHp,
-        reward: type.reward * scaleMultiplier
+        id: Math.random().toString(), mesh: mesh, billboard: bDiv, type: type,
+        maxHp: maxHp, hp: maxHp, reward: type.reward * scaleMultiplier
       };
-      
       targets.push(targetData);
       updateBillboardText(targetData);
     }
 
     function updateBillboardText(t) {
-      const hpText = t.billboard.querySelector('.hp-text');
-      hpText.innerText = `${formatNum(t.hp)} / ${formatNum(t.maxHp)}`;
+      t.billboard.querySelector('.hp-text').innerText = `${formatNum(t.hp)}`;
     }
 
-    // --- ダメージ・破壊処理 ---
-    function damageTarget(t, damage) {
+    // 🌟 画面上にテキストをポップさせるエフェクト関数 🌟
+    function createPopEffect(mesh, text, color) {
+      const vec = new THREE.Vector3(mesh.position.x, mesh.position.y + 1, mesh.position.z);
+      vec.project(camera);
+      const x = (vec.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (vec.y * -0.5 + 0.5) * window.innerHeight;
+
+      const pop = document.createElement('div');
+      pop.className = 'pop-effect roblox-text';
+      pop.style.left = `${x}px`;
+      pop.style.top = `${y}px`;
+      pop.style.color = color;
+      pop.innerText = text;
+      document.getElementById('ui-layer').appendChild(pop);
+      setTimeout(() => pop.remove(), 600);
+    }
+
+    // --- 攻撃処理 ---
+    function damageTarget(t, damage, isPlayerClick = false) {
       t.hp -= damage;
-      // 叩かれたアニメーション（一瞬小さく）
+      playSound('hit');
+
+      // テキストポップ
+      createPopEffect(t.mesh, `-${formatNum(damage)}`, isPlayerClick ? '#ffffff' : '#ffeb3b');
+
       t.mesh.scale.set(0.8, 0.8, 0.8);
-      setTimeout(() => { if(t.mesh) t.mesh.scale.set(1,1,1); }, 80);
+      setTimeout(() => { if(t.mesh) t.mesh.scale.set(1,1,1); }, 60);
 
       if (t.hp <= 0) {
-        // 破壊成功！報酬獲得
         coins += t.reward;
+        playSound('coin');
+        createPopEffect(t.mesh, `+${formatNum(t.reward)}💰`, '#4ade80');
+
+        stageProgress += (t.type.name.includes('巨大') ? 30 : 12);
         
-        // 経験値（進捗）を加算
-        stageProgress += (t.type.name.includes('巨大') ? 25 : 10);
-        
-        // エリアクリア判定
         if (stageProgress >= progressToClear) {
           stageProgress = 0;
           currentStage++;
-          showNotification(`🎉 エリア ${currentStage} のロック解除！`, '#06b6d4');
-          // エリア変更演出（床の色など変化）
-          const colors = [0x4ade80, 0xd97706, 0x334155, 0xe0f2fe, 0x7c3aed];
-          floor.material.color.setHex(colors[currentStage % colors.length]);
+          playSound('levelup');
+          showNotification(`🎉 AREA ${currentStage} UNLOCKED!`, '#00e5ff');
         }
 
-        // 3DとUIから完全に削除
         scene.remove(t.mesh);
         t.billboard.remove();
         targets = targets.filter(x => x.id !== t.id);
-
-        // ペットのターゲットをリセット
-        activePetMeshes.forEach(p => {
-          if (p.userData.targetId === t.id) p.userData.targetId = null;
-        });
-
-        // 即座に新しい敵を補充
+        activePetMeshes.forEach(p => { if (p.userData.targetId === t.id) p.userData.targetId = null; });
         spawnTarget();
       } else {
         updateBillboardText(t);
@@ -246,124 +352,103 @@
       updateUI();
     }
 
-    // --- プレイヤーのクリック攻撃 ---
+    // クリック攻撃判定
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-
     window.addEventListener('pointerdown', (event) => {
+      initAudio(); // 最初のタップでオーディオを起動
       if(event.target.tagName !== 'CANVAS') return;
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
       raycaster.setFromCamera(mouse, camera);
       
-      const meshes = targets.map(t => t.mesh);
-      const intersects = raycaster.intersectObjects(meshes);
-      
+      const intersects = raycaster.intersectObjects(targets.map(t => t.mesh));
       if (intersects.length > 0) {
-        const hitMesh = intersects[0].object;
-        const targetData = targets.find(t => t.mesh === hitMesh);
-        if (targetData) {
-          damageTarget(targetData, clickPower);
-        }
+        const targetData = targets.find(t => t.mesh === intersects[0].object);
+        if (targetData) damageTarget(targetData, clickPower, true);
       }
     });
 
-    // --- ペットAI（自動索敵システム） ---
+    // --- ペットAIシステム ---
     function petAIBehavior() {
       activePetMeshes.forEach(pet => {
-        // 現在のターゲットが消滅していたらリセット
         if (pet.userData.targetId && !targets.some(t => t.id === pet.userData.targetId)) {
           pet.userData.targetId = null;
         }
-
-        // ターゲットがいなければ、一番近いターゲットを探す
         if (!pet.userData.targetId && targets.length > 0) {
-          // 各ペットが完全に同じものを狙わないよう、少しランダム性を持たせる
-          const randomTarget = targets[Math.floor(Math.random() * targets.length)];
-          pet.userData.targetId = randomTarget.id;
+          pet.userData.targetId = targets[Math.floor(Math.random() * targets.length)].id;
         }
 
         const currentTarget = targets.find(t => t.id === pet.userData.targetId);
         if (currentTarget) {
-          // ターゲットの座標に向かって移動させる
           const tPos = currentTarget.mesh.position;
-          
-          // ターゲットの周りに群がるように、ペットごとに少し位置をずらす
           const pIdx = activePetMeshes.indexOf(pet);
           const angle = (pIdx * Math.PI * 2) / activePetMeshes.length;
-          const targetX = tPos.x + Math.cos(angle) * 1.2;
-          const targetZ = tPos.z + Math.sin(angle) * 1.2;
-
-          // 線形補間でスムーズに移動（追従）
-          pet.position.x += (targetX - pet.position.x) * 0.1;
-          pet.position.z += (targetZ - pet.position.z) * 0.1;
           
-          // 攻撃アタック（1秒ごとのタイマーとは別に、見た目をぴょんぴょんさせる）
-          pet.position.y = 0.4 + Math.abs(Math.sin(Date.now() * 0.01 + pIdx)) * 0.5;
+          // ターゲットを囲む位置を計算
+          const targetX = tPos.x + Math.cos(angle) * 1.1;
+          const targetZ = tPos.z + Math.sin(angle) * 1.1;
+
+          pet.position.x += (targetX - pet.position.x) * 0.12;
+          pet.position.z += (targetZ - pet.position.z) * 0.12;
+          // ピョンピョン跳ねながら突撃
+          pet.position.y = 0.35 + Math.abs(Math.sin(Date.now() * 0.015 + pIdx)) * 0.4;
         } else {
-          // ターゲットがない時はプレイヤー（カメラの手前あたり）に戻る
-          pet.position.x += (0 - pet.position.x) * 0.05;
-          pet.position.z += (6 - pet.position.z) * 0.05;
-          pet.position.y = 0.4;
+          // 敵がいない時はプレイヤーアバターの後ろに戻る
+          pet.position.x += (playerGroup.position.x - pet.position.x) * 0.08;
+          pet.position.z += ((playerGroup.position.z + 1.5) - pet.position.z) * 0.08;
+          pet.position.y = 0.3;
         }
       });
     }
 
-    // ペットの自動攻撃タイマー (1200msごとにターゲットへ攻撃)
+    // ペット自動攻撃タイマー
     setInterval(() => {
       activePetMeshes.forEach(pet => {
         if (pet.userData.targetId) {
           const targetData = targets.find(t => t.id === pet.userData.targetId);
-          if (targetData) {
-            damageTarget(targetData, pet.userData.power);
-          }
+          if (targetData) damageTarget(targetData, pet.userData.power);
         }
       });
-    }, 1200);
+    }, 1100);
 
-    // 敵を定期的に最大までスポーンさせる
     setInterval(spawnTarget, 1000);
 
-    // --- ガチャ・インベントリ関連 ---
+    // --- ガチャシステム ---
     function rollGacha() {
       const cost = getGachaCost();
-      if (coins < cost) { showNotification('コインが足りないよ！', 'red'); return; }
+      if (coins < cost) { showNotification('NO COINS!', '#ff3333'); return; }
       coins -= cost;
+      playSound('gacha');
 
       let rand = Math.random() * 10000;
       let selectedRarity = 'Common';
       let sum = 0;
       for (const [key, val] of Object.entries(rarities)) {
-        sum += val.weight;
-        if (rand <= sum) { selectedRarity = key; break; }
+        sum += val.weight; if (rand <= sum) { selectedRarity = key; break; }
       }
 
       const options = petTemplates.filter(p => p.rarity === selectedRarity);
       const template = options[Math.floor(Math.random() * options.length)];
-      const petPower = rarities[selectedRarity].mult * Math.pow(1.4, currentStage - 1);
+      const petPower = rarities[selectedRarity].mult * Math.pow(1.5, currentStage - 1);
 
       const newPet = {
-        id: Date.now() + Math.random().toString(),
-        name: template.name,
-        rarity: template.rarity,
-        mult: petPower,
-        color3D: rarities[selectedRarity].color
+        id: Date.now() + Math.random().toString(), name: template.name, rarity: selectedRarity,
+        mult: petPower, color3D: rarities[selectedRarity].color
       };
 
       inventory.push(newPet);
-      updateUI();
-      renderInventory();
-      showNotification(`🎉 ${newPet.name} ゲット！`, rarities[selectedRarity].htmlColor);
+      updateUI(); renderInventory();
+      showNotification(`🐣 ${newPet.name} GET!!`, rarities[selectedRarity].htmlColor);
     }
 
     function renderInventory() {
-      const list = document.getElementById('pet-list');
-      list.innerHTML = '';
+      const list = document.getElementById('pet-list'); list.innerHTML = '';
       inventory.forEach(pet => {
         const isEquipped = equippedIds.includes(pet.id);
         const div = document.createElement('div');
         div.className = `pet-item ${isEquipped ? 'equipped' : ''}`;
-        div.innerHTML = `${isEquipped ? '✅' : ''} <span style="color:${rarities[pet.rarity].htmlColor}; font-weight:bold;">[${rarities[pet.rarity].name}]</span> ${pet.name} <br>(P: ${formatNum(pet.mult)})`;
+        div.innerHTML = `${isEquipped ? '✅' : ''} <span style="color:${rarities[pet.rarity].htmlColor};">● [${rarities[pet.rarity].name}]</span> ${pet.name}<br>🐾🐾 (P: ${formatNum(pet.mult)})`;
         div.onclick = () => toggleEquip(pet);
         list.appendChild(div);
       });
@@ -371,35 +456,26 @@
 
     function toggleEquip(pet) {
       const idx = equippedIds.indexOf(pet.id);
-      if (idx > -1) {
-        equippedIds.splice(idx, 1);
-        removePetFrom3D(pet.id);
-      } else {
-        if (equippedIds.length >= 3) { showNotification('装備は3体まで！', 'red'); return; }
-        equippedIds.push(pet.id);
-        addPetTo3D(pet);
+      if (idx > -1) { equippedIds.splice(idx, 1); removePetFrom3D(pet.id); } 
+      else {
+        if (equippedIds.length >= 3) { showNotification('MAX 3 PETS!', '#ff3333'); return; }
+        equippedIds.push(pet.id); addPetTo3D(pet);
       }
-      renderInventory();
-      updateUI();
+      renderInventory(); updateUI();
     }
 
     function addPetTo3D(pet) {
       const geo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
       const mat = new THREE.MeshLambertMaterial({ color: pet.color3D });
       const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set((Math.random()-0.5)*4, 0.4, 6);
-      
+      mesh.position.copy(playerGroup.position);
       mesh.userData = { id: pet.id, power: pet.mult, targetId: null };
-      scene.add(mesh);
-      activePetMeshes.push(mesh);
+      scene.add(mesh); activePetMeshes.push(mesh);
     }
 
     function removePetFrom3D(id) {
       const index = activePetMeshes.findIndex(m => m.userData.id === id);
-      if (index > -1) {
-        scene.remove(activePetMeshes[index]);
-        activePetMeshes.splice(index, 1);
-      }
+      if (index > -1) { scene.remove(activePetMeshes[index]); activePetMeshes.splice(index, 1); }
     }
 
     function updateUI() {
@@ -407,9 +483,8 @@
       document.getElementById('power-count').innerText = formatNum(clickPower);
       document.getElementById('equip-count').innerText = equippedIds.length;
       document.getElementById('gacha-cost-display').innerText = formatNum(getGachaCost());
-      document.getElementById('stage-display').innerText = `エリア ${currentStage}`;
+      document.getElementById('stage-display').innerText = `AREA ${currentStage}`;
 
-      // 上部の進行度バーの更新
       const progressPct = Math.min(100, (stageProgress / progressToClear) * 100);
       document.getElementById('progress-bar').style.width = `${progressPct}%`;
       document.getElementById('progress-label').innerText = `Next Area (${Math.floor(progressPct)}%)`;
@@ -417,41 +492,36 @@
 
     function showNotification(text, color) {
       const notif = document.getElementById('notification');
-      notif.innerText = text;
-      notif.style.color = color;
-      notif.style.display = 'block';
-      setTimeout(() => notif.style.display = 'none', 2000);
+      notif.innerText = text; notif.style.color = color; notif.style.display = 'block';
+      setTimeout(() => notif.style.display = 'none', 1800);
     }
 
     window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
+      camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
     // --- メインループ ---
     const vec = new THREE.Vector3();
-    
     function animate() {
       requestAnimationFrame(animate);
-
-      // ペットのAI移動を実行
       petAIBehavior();
 
-      // 各ターゲットの頭上に文字情報を追従（Billboard制御）
+      // プレイヤーを少し呼吸させるアニメーション
+      playerGroup.scale.y = 1 + Math.sin(Date.now() * 0.005) * 0.02;
+
+      // 3D上の名前UIを追従
       targets.forEach(t => {
-        vec.set(t.mesh.position.x, t.mesh.position.y + (t.type.scale[1]/2) + 0.8, t.mesh.position.z);
+        vec.set(t.mesh.position.x, t.mesh.position.y + (t.type.scale[1]/2) + 0.7, t.mesh.position.z);
         vec.project(camera);
-        const x = (vec.x * 0.5 + 0.5) * window.innerWidth;
-        const y = (vec.y * -0.5 + 0.5) * window.innerHeight;
-        t.billboard.style.left = `${x}px`;
-        t.billboard.style.top = `${y}px`;
+        t.billboard.style.left = `${(vec.x * 0.5 + 0.5) * window.innerWidth}px`;
+        t.billboard.style.top = `${(vec.y * -0.5 + 0.5) * window.innerHeight}px`;
       });
 
       renderer.render(scene, camera);
     }
 
-    // 初期生成
+    // 起動
     for(let i=0; i<6; i++) spawnTarget();
     updateUI();
     animate();
