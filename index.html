@@ -9,28 +9,27 @@
     body{overflow:hidden;font-family:'Arial Black',sans-serif;user-select:none;background:#87CEEB;touch-action:manipulation;}
     .roblox-text{color:white;font-weight:900;text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000,0 3px 0 #000;}
 
-    /* ---- HUD ---- */
-    #hud{position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:10;}
-    #hud-top{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;}
-    #hud-left{pointer-events:auto;line-height:1.55;font-size:14px;}
-    #hud-left .stage-lbl{font-size:20px;color:#ffeb3b;margin-bottom:2px;}
-    #hud-center{pointer-events:auto;text-align:center;min-width:220px;}
+    /* ---- HUD TOP (固定・上部) ---- */
+    #hud-top{position:absolute;top:0;left:0;width:100%;pointer-events:none;z-index:10;display:flex;justify-content:space-between;align-items:flex-start;padding:8px 12px;}
+    #hud-left{pointer-events:auto;line-height:1.55;font-size:14px;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:12px;}
+    #hud-left .stage-lbl{font-size:18px;color:#ffeb3b;margin-bottom:2px;}
+    #hud-center{pointer-events:auto;text-align:center;flex:1;margin:0 10px;}
     #prog-lbl{font-size:12px;margin-bottom:2px;}
     #prog-bg{background:#222;height:15px;border-radius:10px;border:2.5px solid #fff;overflow:hidden;box-shadow:0 3px 0 #000;}
     #prog-bar{background:#00e5ff;width:0%;height:100%;transition:width .12s;}
-    #hud-right{pointer-events:auto;text-align:right;font-size:13px;line-height:1.6;}
+    #hud-right{pointer-events:auto;text-align:right;font-size:13px;line-height:1.6;background:rgba(0,0,0,.45);padding:6px 10px;border-radius:12px;}
     #diamond-disp{color:#a5f3fc;}
 
-    /* ---- Bottom bar ---- */
-    #bottom-bar{position:absolute;bottom:0;left:0;width:100%;pointer-events:none;z-index:10;display:flex;justify-content:space-between;align-items:flex-end;padding:10px 12px;}
-    #left-icons{display:flex;gap:8px;flex-wrap:wrap;max-width:300px;pointer-events:auto;}
-    .ico{width:50px;height:50px;background:#fff;border:3.5px solid #000;border-radius:12px;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 0 #000;transition:transform .1s;position:relative;flex-shrink:0;}
+    /* ---- Bottom bar (固定・下部) ---- */
+    #bottom-bar{position:absolute;bottom:0;left:0;width:100%;pointer-events:none;z-index:10;padding:10px 12px 14px;}
+    #left-icons{display:flex;gap:7px;flex-wrap:wrap;max-width:100%;pointer-events:auto;}
+    .ico{width:48px;height:48px;background:#fff;border:3.5px solid #000;border-radius:12px;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 0 #000;transition:transform .1s;position:relative;flex-shrink:0;}
     .ico:active{transform:scale(.9) translateY(4px);box-shadow:none;}
     .badge{position:absolute;top:-6px;right:-6px;background:#ef4444;color:#fff;font-size:10px;font-weight:900;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border:2px solid #000;}
 
     /* ---- Stage nav ---- */
-    #stage-nav{pointer-events:auto;display:flex;gap:6px;align-items:center;}
-    #stage-nav button{background:rgba(0,0,0,.6);border:2.5px solid #fff;color:#fff;border-radius:8px;padding:5px 10px;font-size:13px;font-weight:900;cursor:pointer;}
+    #stage-nav{pointer-events:auto;display:flex;gap:6px;align-items:center;margin-top:5px;justify-content:center;}
+    #stage-nav button{background:rgba(0,0,0,.6);border:2.5px solid #fff;color:#fff;border-radius:8px;padding:4px 10px;font-size:13px;font-weight:900;cursor:pointer;}
     #stage-nav button:active{opacity:.7;}
     #stage-select-btn{background:rgba(59,130,246,.7);}
 
@@ -150,42 +149,42 @@
 <!-- 3D Canvas (appended by JS) -->
 <div id="billboard-container"></div>
 
-<!-- HUD -->
-<div id="hud" style="display:none;">
-  <div id="hud-top">
-    <div id="hud-left" class="roblox-text">
-      <div class="stage-lbl" id="stage-disp">AREA 1</div>
-      <div id="rank-disp" style="font-size:12px;color:#f472b6;">👑 ノービス</div>
-      💰 <span id="coin-disp">0</span><br>
-      ⚡ <span id="power-disp">1</span><br>
-      💎 <span id="dia-disp">0</span>
-    </div>
-    <div id="hud-center" class="roblox-text">
-      <div id="prog-lbl">Next Area (0%)</div>
-      <div id="prog-bg"><div id="prog-bar"></div></div>
-      <div id="stage-nav" style="margin-top:6px;justify-content:center;">
-        <button onclick="prevStage()">◀</button>
-        <button id="stage-select-btn" onclick="openModal('stage-modal')">📍</button>
-        <button onclick="nextStage()">▶</button>
-      </div>
-    </div>
-    <div id="hud-right" class="roblox-text">
-      🎒 <span id="bag-disp">0</span>/<span id="bagmax-disp">20</span><br>
-      🤖 <span id="af-disp" style="display:none;">AUTO</span><br>
-      <span id="boost-disp" style="color:#ffeb3b;font-size:12px;display:none;">x2 BOOST!</span>
+<!-- HUD TOP -->
+<div id="hud-top" class="roblox-text" style="display:none;">
+  <div id="hud-left">
+    <div class="stage-lbl" id="stage-disp">AREA 1</div>
+    <div id="rank-disp" style="font-size:12px;color:#f472b6;">👑 ノービス</div>
+    💰 <span id="coin-disp">0</span><br>
+    ⚡ <span id="power-disp">1</span><br>
+    💎 <span id="dia-disp">0</span>
+  </div>
+  <div id="hud-center">
+    <div id="prog-lbl">Next Area (0%)</div>
+    <div id="prog-bg"><div id="prog-bar"></div></div>
+    <div id="stage-nav">
+      <button onclick="prevStage()">◀</button>
+      <button id="stage-select-btn" onclick="openModal('stage-modal')">📍</button>
+      <button onclick="nextStage()">▶</button>
     </div>
   </div>
-  <div id="bottom-bar">
-    <div id="left-icons">
-      <div class="ico" onclick="openModal('pet-modal')">🐾<span class="badge" id="b-pet" style="display:none">!</span></div>
-      <div class="ico" onclick="openModal('quest-modal')">📋<span class="badge" id="b-quest" style="display:none">!</span></div>
-      <div class="ico" onclick="openModal('rebirth-modal')">🔄</div>
-      <div class="ico" onclick="openModal('bag-modal')">🎒</div>
-      <div class="ico" onclick="openModal('trade-modal')">🤝</div>
-      <div class="ico" onclick="openModal('ranking-modal')">🏆</div>
-      <div class="ico" onclick="openModal('enchant-modal')">✨</div>
-      <div class="ico" onclick="openModal('settings-modal')">⚙️</div>
-    </div>
+  <div id="hud-right">
+    🎒 <span id="bag-disp">0</span>/<span id="bagmax-disp">20</span><br>
+    🤖 <span id="af-disp" style="display:none;">AUTO</span><br>
+    <span id="boost-disp" style="color:#ffeb3b;font-size:12px;display:none;">x2 BOOST!</span>
+  </div>
+</div>
+
+<!-- HUD BOTTOM -->
+<div id="bottom-bar" style="display:none;">
+  <div id="left-icons">
+    <div class="ico" onclick="openModal('pet-modal')">🐾<span class="badge" id="b-pet" style="display:none">!</span></div>
+    <div class="ico" onclick="openModal('quest-modal')">📋<span class="badge" id="b-quest" style="display:none">!</span></div>
+    <div class="ico" onclick="openModal('rebirth-modal')">🔄</div>
+    <div class="ico" onclick="openModal('bag-modal')">🎒</div>
+    <div class="ico" onclick="openModal('trade-modal')">🤝</div>
+    <div class="ico" onclick="openModal('ranking-modal')">🏆</div>
+    <div class="ico" onclick="openModal('enchant-modal')">✨</div>
+    <div class="ico" onclick="openModal('settings-modal')">⚙️</div>
   </div>
 </div>
 
@@ -1786,7 +1785,8 @@ function startGame(){
       clearInterval(iv);
       setTimeout(()=>{
         document.getElementById('loading').style.display='none';
-        document.getElementById('hud').style.display='block';
+        document.getElementById('hud-top').style.display='flex';
+        document.getElementById('bottom-bar').style.display='block';
         if(quests.length===0)refreshQuests();
         if(autofarmUnlocked)startAutofarm();
         updateUI();init3D();scheduleRaid();
