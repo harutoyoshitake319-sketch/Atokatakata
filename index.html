@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>🐾 ペットシム99 v5.1</title>
+<title>🐾 ペットシム99 v5.2</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{overflow:hidden;font-family:'Arial Black',sans-serif;user-select:none;background:#87CEEB;touch-action:manipulation;}
@@ -142,7 +142,22 @@ canvas{display:block;position:absolute;top:0;left:0;z-index:1;}
 
 /* ===== MINIGAME ===== */
 #mg-ov{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,20,.98);
-  z-index:800;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:6px;}
+  z-index:800;display:none;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:4px;}
+
+/* Landscape minigame layout */
+@media (orientation:landscape){
+  #mg-ov{flex-direction:row;flex-wrap:wrap;align-items:flex-start;justify-content:center;padding:2px 4px;gap:4px;}
+  #mg-header{width:100%;margin-bottom:2px;}
+  #mg-rules{width:100%;margin:0;}
+  #mg-canvas{max-height:calc(100vh - 60px) !important;flex:1;}
+  #mg-controls{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:4px;}
+  #mg-dpad .dp{width:38px;height:38px;font-size:14px;}
+  #mg-fire-btn{padding:8px 14px;font-size:12px;}
+}
+@media (orientation:portrait){
+  #mg-controls{display:flex;flex-direction:row;gap:12px;align-items:center;margin-top:4px;}
+}
 
 #mg-header{display:flex;justify-content:space-between;align-items:center;width:min(420px,96vw);
   padding:6px 10px;background:rgba(255,255,255,.08);border-radius:10px;margin-bottom:6px;}
@@ -267,7 +282,7 @@ canvas{display:block;position:absolute;top:0;left:0;z-index:1;}
   </div>
   <div id="mg-rules"></div>
   <canvas id="mg-canvas" width="420" height="300"></canvas>
-  <div style="display:flex;gap:12px;align-items:center;margin-top:4px;">
+  <div id="mg-controls" style="display:flex;gap:12px;align-items:center;margin-top:4px;">
     <div id="mg-dpad">
       <button class="dp" style="grid-area:u" id="dp-u">▲</button>
       <button class="dp" style="grid-area:l" id="dp-l">◀</button>
@@ -359,7 +374,7 @@ canvas{display:block;position:absolute;top:0;left:0;z-index:1;}
     <span class="mi-ico">⚙️</span> 設定
   </div>
   <div class="sep" style="margin:4px 0;"></div>
-  <div style="color:#aaa;font-size:10px;text-align:center;padding:4px;">v5.1 自動保存💾</div>
+  <div style="color:#aaa;font-size:10px;text-align:center;padding:4px;">v5.2 自動保存💾</div>
 </div>
 
 <!-- Building panel -->
@@ -453,7 +468,7 @@ canvas{display:block;position:absolute;top:0;left:0;z-index:1;}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const SAVE_KEY='petsim99_v51';
+const SAVE_KEY='petsim99_v52';
 
 let coins=500,diamonds=0,baseClickPower=1,clickPower=1;
 let currentStage=1,viewingStage=1,stageProgress=0,maxUnlockedStage=1;
@@ -551,23 +566,30 @@ const targetTypes=[
   {emoji:'💠', hp:140, reward:130, color:0x7c3aed, scale:[1.4,1.6,1.4]},
   {emoji:'💎', hp:300, reward:290, color:0x00bfff, scale:[2.2,2.2,2.2]}
 ];
-const raidTargetDef={emoji:'🌟', hp:4, reward:50, color:0xffff00, scale:[.8,.8,.8]};
+const raidTypes=[
+  {emoji:'🪙', hp:5,  reward:60,  color:0xffd700, scale:[.9,.4,.9]},
+  {emoji:'💠', hp:15, reward:180, color:0x7c3aed, scale:[1.2,1.4,1.2]},
+];
 const materialTypes=['鉄鉱石⛏️','魔法の草🌿','竜の鱗🐉','星のかけら⭐','深海の珠🔵'];
 const evoStages=[{name:'',lv:0,pm:1},{name:'✦',lv:10,pm:2},{name:'✦✦MAX',lv:25,pm:4}];
 
+// Buildings: onStage = exact stage where this building appears
+// gacha only on stage 1, minigame rotates by stage, others on specific stages
 const buildingSchedule=[
-  {fromStage:1, id:'gacha',        name:'ガチャ小屋',     emoji:'🥚', side:'R', oz:0},
-  {fromStage:3, id:'minigame',     name:'ミニゲーム',     emoji:'🎮', side:'L', oz:0},
-  {fromStage:5, id:'item_shop',    name:'アイテム店',     emoji:'🛒', side:'R', oz:3},
-  {fromStage:5, id:'enchant_shop', name:'エンチャント',   emoji:'✨', side:'L', oz:3},
-  {fromStage:10,id:'pet_sell',     name:'ペット売却',     emoji:'💸', side:'R', oz:6},
-  {fromStage:10,id:'fishing',      name:'釣り場',         emoji:'🎣', side:'L', oz:6},
-  {fromStage:15,id:'mat_shop',     name:'素材ショップ',   emoji:'⛏️', side:'R', oz:9},
-  {fromStage:15,id:'item_craft',   name:'アイテム生成',   emoji:'⚒️', side:'L', oz:9},
-  {fromStage:20,id:'ench_upg',     name:'エンチャント強化',emoji:'⚗️',side:'R', oz:12},
-  {fromStage:20,id:'potion_craft', name:'ポーション工房', emoji:'🧪', side:'L', oz:12},
-  {fromStage:25,id:'mat_quest',    name:'素材クエスト',   emoji:'🗺️', side:'R', oz:15},
-  {fromStage:25,id:'pet_power',    name:'ペット強化所',   emoji:'💪', side:'L', oz:15},
+  {onStage:1,  id:'gacha',        name:'ガチャ小屋',     emoji:'🥚', side:'R'},
+  {onStage:2,  id:'item_shop',    name:'アイテム店',     emoji:'🛒', side:'L'},
+  {onStage:3,  id:'minigame_shooter', name:'シューター', emoji:'🚀', side:'R', mgType:'shooter'},
+  {onStage:4,  id:'enchant_shop', name:'エンチャント',   emoji:'✨', side:'L'},
+  {onStage:5,  id:'minigame_dodge',   name:'雷避け',     emoji:'⚡', side:'R', mgType:'dodge'},
+  {onStage:6,  id:'pet_sell',     name:'ペット売却',     emoji:'💸', side:'L'},
+  {onStage:7,  id:'minigame_collect', name:'ダイヤ回収', emoji:'💎', side:'R', mgType:'collect'},
+  {onStage:8,  id:'fishing',      name:'釣り場',         emoji:'🎣', side:'L'},
+  {onStage:9,  id:'mat_shop',     name:'素材ショップ',   emoji:'⛏️', side:'R'},
+  {onStage:10, id:'item_craft',   name:'アイテム生成',   emoji:'⚒️', side:'L'},
+  {onStage:12, id:'ench_upg',     name:'エンチャント強化',emoji:'⚗️',side:'R'},
+  {onStage:14, id:'potion_craft', name:'ポーション工房', emoji:'🧪', side:'L'},
+  {onStage:16, id:'mat_quest',    name:'素材クエスト',   emoji:'🗺️', side:'R'},
+  {onStage:18, id:'pet_power',    name:'ペット強化所',   emoji:'💪', side:'L'},
 ];
 
 let buildingMeshes=[];
@@ -719,7 +741,8 @@ function rebuild3DBuildings(){
     if(b.hitzone)b.hitzone.remove();
   });
   buildingMeshes=[];
-  const available=buildingSchedule.filter(b=>viewingStage>=b.fromStage);
+  // Only show buildings whose onStage matches current viewingStage
+  const available=buildingSchedule.filter(b=>b.onStage===viewingStage);
   let lZ=BLDG_Z_BASE,rZ=BLDG_Z_BASE;
   available.forEach(def=>{
     const isL=def.side==='L';
@@ -776,18 +799,29 @@ function rebuild3DBuildings(){
 function openBldgPanel(id){
   document.querySelectorAll('.modal').forEach(m=>m.style.display='none');
   const def=buildingSchedule.find(b=>b.id===id);if(!def)return;
+
+  // Minigame buildings start game directly, no panel
+  if(id.startsWith('minigame_')){
+    closeBldgPanel();
+    startMinigame(def.mgType);
+    return;
+  }
+  // Enchant opens modal directly, no right panel
+  if(id==='enchant_shop'||id==='ench_upg'){
+    closeBldgPanel();
+    openModal('enchant-modal');
+    return;
+  }
+
   document.getElementById('bldg-panel-title').textContent=def.emoji+' '+def.name;
   const body=document.getElementById('bldg-panel-body');body.innerHTML='';
   const fn={
     gacha:renderGachaPanel,
-    minigame:()=>{closeBldgPanel();openMgSelect();},
     item_shop:renderItemShopPanel,
-    enchant_shop:()=>{closeBldgPanel();openModal('enchant-modal');},
     pet_sell:renderPetSellPanel,
     fishing:renderFishingPanel,
     mat_shop:renderMatShopPanel,
     item_craft:renderItemCraftPanel,
-    ench_upg:()=>{closeBldgPanel();openModal('enchant-modal');},
     potion_craft:renderPotionCraftPanel,
     mat_quest:renderMatQuestPanel,
     pet_power:renderPetPowerPanel,
@@ -797,23 +831,17 @@ function openBldgPanel(id){
 }
 function closeBldgPanel(){document.getElementById('bldg-panel').classList.remove('show');}
 
-// Gacha panel
+// Gacha panel — building only appears on stage 1 so no lock needed
 function renderGachaPanel(el){
   const cost=getGachaCost(),cost10=Math.floor(cost*9);
-  const isArea1=(viewingStage===1);
-  let lockedMsg='';
-  if(!isArea1){
-    lockedMsg=`<div id="gacha-locked">🔒 ガチャはAREA 1のみ利用可能！<br>AREA 1に戻ってください。</div>`;
-  }
   el.innerHTML=`
-    ${lockedMsg}
     <div class="card" style="text-align:center;color:#fff;">
       <div>AREA 1 ガチャ</div>
       <div style="color:#aaa;font-size:10px;">コスト: 💰${fmt(cost)}/回</div>
     </div>
-    <button class="btn g" ${!isArea1?'disabled':''} onclick="rollGacha1()">🥚 × 1 (💰${fmt(cost)})</button>
-    <button class="btn p" ${!isArea1?'disabled':''} onclick="rollGacha10()" style="margin-top:5px;">🥚 × 10 (💰${fmt(cost10)})</button>
-    <button class="btn pk" ${!isArea1?'disabled':''} onclick="rollGachaRare()" style="margin-top:5px;">💎 レアガチャ (💎5)</button>
+    <button class="btn g" onclick="rollGacha1()">🥚 × 1 (💰${fmt(cost)})</button>
+    <button class="btn p" onclick="rollGacha10()" style="margin-top:5px;">🥚 × 10 (💰${fmt(cost10)})</button>
+    <button class="btn pk" onclick="rollGachaRare()" style="margin-top:5px;">💎 レアガチャ (💎5)</button>
     <div class="sep"></div>
     <button class="btn c" onclick="diamondBoostPower()">💎 ダイヤでパワーUP (💎5)</button>`;
 }
@@ -821,7 +849,7 @@ function renderGachaPanel(el){
 // ============================================================
 // MINIGAME SYSTEM
 // ============================================================
-function openMgSelect(){document.getElementById('mg-select').style.display='flex';}
+function openMgSelect(){document.getElementById('mg-select').style.display='flex';}// kept for compat
 function closeMgSelect(){document.getElementById('mg-select').style.display='none';}
 
 ['dp-u','dp-d','dp-l','dp-r'].forEach(id=>{
@@ -851,9 +879,16 @@ function startMinigame(type){
   mgFireCooldown=0;mgSpawnTimer=0;mgLevel=1;mgTimeLeft=30;
   mgEnemyDir=1;mgEnemyMoveTimer=0;mgInvFrames=0;
 
-  const maxW=Math.min(420,window.innerWidth-8);
-  const isLandscape=window.innerHeight<500;
-  const maxH=isLandscape?window.innerHeight-160:Math.min(300,window.innerHeight-200);
+  const isLandscape=window.innerHeight<window.innerWidth&&window.innerHeight<600;
+  let maxW,maxH;
+  if(isLandscape){
+    // landscape: canvas takes most of screen height, width fills rest
+    maxH=window.innerHeight-56;// leave room for header
+    maxW=Math.min(Math.floor(maxH*(4/3)),window.innerWidth-120);// 4:3 ratio, leave room for dpad
+  }else{
+    maxW=Math.min(420,window.innerWidth-8);
+    maxH=Math.min(300,window.innerHeight-220);
+  }
   mgW=maxW;mgH=maxH;
   const cv=document.getElementById('mg-canvas');
   cv.width=mgW;cv.height=mgH;
@@ -1106,6 +1141,7 @@ function endMinigame(){
   mgRunning=false;
   clearInterval(mgIv);clearInterval(mgTimerIv);
   document.getElementById('mg-ov').style.display='none';
+  document.getElementById('bldg-panel').classList.remove('show');// ensure right panel stays closed
   const ench=1+getEnchEffect('diaGain');
   const pot=diaPotionActive?2:1;
   const earned=Math.max(0,Math.floor(mgScore*ench*pot));
@@ -1342,7 +1378,6 @@ function rollSingle(){
     color3D:rarities[sel].color,isGolden:false,isRainbow:false,level:0,baseName:tmpl.name};
 }
 function rollGacha1(){
-  if(viewingStage!==1){showNotif('ガチャはAREA 1のみ！','#f33');return;}
   const cost=getGachaCost();
   if(coins<cost){showNotif('コイン不足！','#f33');return;}
   if(inventory.length>=bagCapacity){showNotif('バッグ満杯！','#f33');return;}
@@ -1353,7 +1388,6 @@ function rollGacha1(){
   showNotif(`🐣 ${pet.name} GET！[${rarities[pet.rarity].name}]`,rarities[pet.rarity].html);
 }
 function rollGacha10(){
-  if(viewingStage!==1){showNotif('ガチャはAREA 1のみ！','#f33');return;}
   const cost=Math.floor(getGachaCost()*9);
   if(coins<cost){showNotif('コイン不足！','#f33');return;}
   const free=bagCapacity-inventory.length;if(!free){showNotif('バッグ満杯！','#f33');return;}
@@ -1363,7 +1397,6 @@ function rollGacha10(){
   checkQuestProgress();checkQuestBadge();checkMerge();updateUI();showHatchAnim(pets);
 }
 function rollGachaRare(){
-  if(viewingStage!==1){showNotif('ガチャはAREA 1のみ！','#f33');return;}
   if(diamonds<5){showNotif('ダイヤ不足！','#f33');return;}
   if(inventory.length>=bagCapacity){showNotif('バッグ満杯！','#f33');return;}
   diamonds-=5;playSound('gacha');
@@ -1920,7 +1953,7 @@ function darken(hex,f){return((((hex>>16)&0xff)*f|0)<<16)|((((hex>>8)&0xff)*f|0)
 
 function buildAnimalMesh(p){
   const g=new THREE.Group();
-  const sc=p.rarity==='Giant'?1.8:(p.rarity==='Rainbow'?1.4:(p.isRainbow?1.3:(p.isGolden?1.1:.8)));
+  const sc=p.rarity==='Giant'?3.2:(p.rarity==='Rainbow'?2.6:(p.isRainbow?2.4:(p.isGolden?2.0:1.5)));
   const c=p.isRainbow?0xff00ff:(p.isGolden?0xffd700:p.color3D);
   const d=darken(c,.55);
   const bm=makeMat(c),dm=makeMat(d);
@@ -2008,8 +2041,10 @@ function startRaid(){
   },1000);
 }
 function spawnRaidTgt(){
-  if(!scene)return;const type=raidTargetDef;const sc=getStageScale()*.5;
-  const mesh=new THREE.Mesh(new THREE.BoxGeometry(...type.scale),new THREE.MeshLambertMaterial({color:type.color,emissive:0xffff00,emissiveIntensity:.4}));
+  if(!scene)return;
+  const type=raidTypes[Math.random()<.6?0:1];// 60% coins, 40% crystals
+  const sc=getStageScale()*.5;
+  const mesh=new THREE.Mesh(new THREE.BoxGeometry(...type.scale),new THREE.MeshLambertMaterial({color:type.color,emissive:type.color,emissiveIntensity:.3}));
   const pos=getSpawnPos(targets);
   mesh.position.set(pos.x,type.scale[1]/2,pos.z);scene.add(mesh);
   const bDiv=document.createElement('div');
